@@ -1,0 +1,63 @@
+server:
+  port: ${PORT:8081}
+
+spring:
+  application:
+    name: kisan-user-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/kisanconnect}
+    username: ${DATABASE_USERNAME:kcuser}
+    password: ${DATABASE_PASSWORD:kcpass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 3
+      minimum-idle: 1
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_schema: user_svc
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  flyway:
+    enabled: true
+    schemas: user_svc
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  kafka:
+    bootstrap-servers: ${KAFKA_URL:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+        security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+        sasl.mechanism: ${KAFKA_SASL_MECHANISM:PLAIN}
+        sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG:}
+
+jwt:
+  secret: ${JWT_SECRET:kisanconnect-local-secret-key-change-in-prod-at-least-32-chars}
+  expiration-ms: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.kisanconnect: INFO
+    org.apache.kafka: WARN
+    org.flywaydb: INFO

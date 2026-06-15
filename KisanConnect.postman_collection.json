@@ -1,0 +1,455 @@
+{
+  "info": {
+    "name": "KisanConnect API",
+    "description": "Complete API test collection \u2014 User, Product, Order services",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "user_svc",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "product_svc",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "order_svc",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "farmer_token",
+      "value": ""
+    },
+    {
+      "key": "buyer_token",
+      "value": ""
+    },
+    {
+      "key": "product_id",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. User Service",
+      "item": [
+        {
+          "name": "Register Farmer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if(pm.response.code===201){pm.collectionVariables.set('farmer_token',pm.response.json().token);console.log('farmer token saved');}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{user_svc}}/api/v1/users/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Farmer\",\n  \"email\": \"testfarmer@farm.com\",\n  \"phone\": \"9876543212\",\n  \"password\": \"password123\",\n  \"role\": \"FARMER\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Buyer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if(pm.response.code===201){pm.collectionVariables.set('buyer_token',pm.response.json().token);}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{user_svc}}/api/v1/users/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Buyer\",\n  \"email\": \"testbuyer@buy.com\",\n  \"phone\": \"9876543213\",\n  \"password\": \"password123\",\n  \"role\": \"BUYER\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Farmer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if(pm.response.code===200){pm.collectionVariables.set('farmer_token',pm.response.json().token);}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{user_svc}}/api/v1/users/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ravi@farm.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Buyer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if(pm.response.code===200){pm.collectionVariables.set('buyer_token',pm.response.json().token);}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{user_svc}}/api/v1/users/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"priya@buyer.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{farmer_token}}"
+              }
+            ],
+            "url": "{{user_svc}}/api/v1/users"
+          }
+        },
+        {
+          "name": "List Farmers Only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{farmer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{user_svc}}/api/v1/users?role=FARMER",
+              "query": [
+                {
+                  "key": "role",
+                  "value": "FARMER"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Product Service",
+      "item": [
+        {
+          "name": "List All Products",
+          "request": {
+            "method": "GET",
+            "url": "{{product_svc}}/api/v1/products"
+          }
+        },
+        {
+          "name": "Filter SMALL",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{product_svc}}/api/v1/products?scale=SMALL",
+              "query": [
+                {
+                  "key": "scale",
+                  "value": "SMALL"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter MEDIUM",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{product_svc}}/api/v1/products?scale=MEDIUM",
+              "query": [
+                {
+                  "key": "scale",
+                  "value": "MEDIUM"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter LARGE",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{product_svc}}/api/v1/products?scale=LARGE",
+              "query": [
+                {
+                  "key": "scale",
+                  "value": "LARGE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search by Keyword",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{product_svc}}/api/v1/products?keyword=tomato",
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "tomato"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if(pm.response.code===201){pm.collectionVariables.set('product_id',pm.response.json().id);}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{farmer_token}}"
+              }
+            ],
+            "url": "{{product_svc}}/api/v1/products",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Organic Onions\",\n  \"description\": \"Fresh red onions\",\n  \"category\": \"Vegetables\",\n  \"scale\": \"MEDIUM\",\n  \"price\": 30.00,\n  \"unit\": \"kg\",\n  \"stockQty\": 800\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{product_svc}}/api/v1/products/{{product_id}}"
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{farmer_token}}"
+              }
+            ],
+            "url": "{{product_svc}}/api/v1/products/{{product_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 28.00,\n  \"stockQty\": 750\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{farmer_token}}"
+              }
+            ],
+            "url": "{{product_svc}}/api/v1/products/{{product_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Order Service",
+      "item": [
+        {
+          "name": "Place Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if(pm.response.code===201){pm.collectionVariables.set('order_id',pm.response.json().id);}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer_token}}"
+              }
+            ],
+            "url": "{{order_svc}}/api/v1/orders",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{product_id}}\",\n      \"farmerId\": \"a1000000-0000-0000-0000-000000000001\",\n      \"quantity\": 10,\n      \"unitPrice\": 45.00,\n      \"scale\": \"SMALL\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "My Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer_token}}"
+              }
+            ],
+            "url": "{{order_svc}}/api/v1/orders/my"
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer_token}}"
+              }
+            ],
+            "url": "{{order_svc}}/api/v1/orders/{{order_id}}"
+          }
+        },
+        {
+          "name": "Status \u2192 CONFIRMED",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{farmer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{order_svc}}/api/v1/orders/{{order_id}}/status?status=CONFIRMED",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "CONFIRMED"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Status \u2192 SHIPPED",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{farmer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{order_svc}}/api/v1/orders/{{order_id}}/status?status=SHIPPED",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SHIPPED"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Status \u2192 DELIVERED",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{farmer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{order_svc}}/api/v1/orders/{{order_id}}/status?status=DELIVERED",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "DELIVERED"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
