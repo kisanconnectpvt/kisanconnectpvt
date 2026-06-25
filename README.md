@@ -43,6 +43,34 @@ chmod +x deploy.sh
 ./start.sh test         # Run all 40 tests
 ```
 
+## Local Development Without Docker
+
+If Docker is not allowed, run services locally using managed infrastructure (Neon/Postgres, Upstash/Confluent Kafka, Redis Cloud) or your own DB/Kafka instances.
+
+1. Create `.env.local` in the repo root with service endpoints and secrets (an example is already provided).
+
+2. Run a backend service (PowerShell):
+
+```powershell
+$env:DATABASE_URL="jdbc:postgresql://your-host:5432/kisanconnect"
+$env:DATABASE_USERNAME="your-db-user"
+$env:DATABASE_PASSWORD="your-db-pass"
+$env:KAFKA_URL="your-kafka-host:9092"
+$env:JWT_SECRET="your-32-char-secret"
+.\scripts\run-service.ps1 user
+```
+
+3. Start the frontend (in another terminal):
+
+```powershell
+.\scripts\run-service.ps1 frontend
+```
+
+Notes:
+- The scripts load environment variables from `.env.local` and run the service with `./mvnw spring-boot:run` (backend) or `npm start` (frontend).
+- For DB you can use Neon or any Postgres instance; Flyway migrations will run on startup.
+- For Kafka, use a managed Kafka provider (Upstash/Confluent Cloud) and set `KAFKA_URL` and auth envs in `.env.local`.
+
 ## Seed Accounts
 
 | Role   | Email             | Password    |
@@ -59,3 +87,33 @@ chmod +x deploy.sh
 | Order Service        | https://kc-order-service.fly.dev          |
 | Notification Service | https://kc-notification-service.fly.dev   |
 | Frontend             | https://kisanconnect.in                   |
+
+## Local Docker & Rancher
+
+- **Run with Docker Compose:** uses `.env.local` at repo root for container env vars.
+
+```bash
+docker compose up --build
+```
+
+- **Rebuild images (if needed):**
+
+```bash
+docker compose build --no-cache
+docker compose up -d
+```
+
+- **Rancher Desktop / k3s:** convert the Compose file to Kubernetes manifests with `kompose` and apply with `kubectl` (or import via the Rancher Desktop UI):
+
+```bash
+# install kompose (if not present)
+# https://kompose.io
+kompose convert -f docker-compose.yml -o k8s-manifests
+kubectl apply -f k8s-manifests
+```
+
+- **Notes:**
+	- The services expect the DB host `postgres` and Kafka host `kc-kafka` from Docker Compose networking; `.env.local` contains container-aware defaults.
+	- Frontend runs on port `3000` (mapped to container `80`), backends on `8081-8084`, Postgres on `5432`, Kafka on `9092`, Redis on `6379`.
+	- If using Rancher Desktop, ensure the cluster has access to PersistentVolumes for Postgres or use an external DB.
+

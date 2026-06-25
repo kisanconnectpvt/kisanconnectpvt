@@ -7,18 +7,13 @@ import Products        from './pages/products/Products';
 import ProductForm     from './pages/products/ProductForm';
 import FarmerDashboard from './pages/dashboard/FarmerDashboard';
 import BuyerDashboard  from './pages/dashboard/BuyerDashboard';
+import Home            from './pages/Home';
 
 function PrivateRoute({children,roles}) {
   const {user}=useAuth();
   if(!user) return <Navigate to="/login" replace/>;
   if(roles&&!roles.includes(user.role)) return <Navigate to="/products" replace/>;
   return children;
-}
-
-function Home() {
-  const {user}=useAuth();
-  if(!user) return <Navigate to="/login" replace/>;
-  return <Navigate to={user.role==='FARMER'?'/dashboard/farmer':'/dashboard/buyer'} replace/>;
 }
 
 export default function App() {

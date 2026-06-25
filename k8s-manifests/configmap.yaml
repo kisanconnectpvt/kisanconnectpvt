@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kisan-config
+data:
+  # Service-visible URLs used by the services inside the cluster
+  DATABASE_URL: "jdbc:postgresql://postgres:5432/kisanconnect"
+  KAFKA_URL: "kc-kafka:29092"
+  KAFKA_SECURITY_PROTOCOL: "PLAINTEXT"
+  KAFKA_SASL_MECHANISM: ""

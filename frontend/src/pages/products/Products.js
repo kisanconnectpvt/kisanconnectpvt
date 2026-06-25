@@ -106,6 +106,5 @@ export default function Products() {
     </div>
   );
 }
-const G='#2d6a4f';
 const nb={padding:'6px 13px',background:'rgba(255,255,255,.15)',color:'#fff',border:'1px solid rgba(255,255,255,.3)',borderRadius:7,cursor:'pointer',fontSize:12,fontFamily:'inherit'};
 const qb={width:24,height:24,border:'1px solid #ddd',borderRadius:4,cursor:'pointer',background:'#f9f9f9',fontSize:13,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'inherit'};
