@@ -27,7 +27,9 @@ public class ProductService {
 
     public List<ProductResponse> listAll(String scale, String category, String keyword) {
         Product.Scale scaleEnum = scale != null ? Product.Scale.valueOf(scale.toUpperCase()) : null;
-        return repo.search(scaleEnum, category, keyword).stream().map(this::toResponse).collect(Collectors.toList());
+        String categoryLower = category != null ? category.toLowerCase() : null;
+        String keywordPattern = keyword != null ? "%" + keyword.toLowerCase() + "%" : null;
+        return repo.search(scaleEnum, category, categoryLower, keywordPattern).stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     public List<ProductResponse> listByFarmer(UUID farmerId) {
