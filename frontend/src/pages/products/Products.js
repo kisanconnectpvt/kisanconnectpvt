@@ -1,5 +1,5 @@
 import React,{useState,useEffect,useCallback} from 'react';
-import {productService,orderService} from '../../services/api';
+import {productService} from '../../services/api';
 import {useAuth} from '../../context/AuthContext';
 import {useNavigate} from 'react-router-dom';
 
@@ -31,13 +31,8 @@ export default function Products() {
 
   const placeOrder=async()=>{
     if(!user){navigate('/login');return;} if(!cart.length) return;
-    setPlacing(true); setMsg('');
-    try {
-      const {data}=await orderService.create({items:cart.map(({name,...r})=>r)});
-      setMsg('✅ Order #'+data.id.slice(0,8)+' placed! Total ₹'+data.totalAmount);
-      setCart([]);
-    } catch(e){setMsg('❌ '+(e.response?.data?.message||'Order failed'));}
-    finally{setPlacing(false);}
+    localStorage.setItem('kc_checkout_cart', JSON.stringify(cart));
+    navigate('/checkout');
   };
 
   const total=cart.reduce((s,i)=>s+i.unitPrice*i.quantity,0);
@@ -97,7 +92,7 @@ export default function Products() {
             ))}
             {cart.length>0&&<>
               <div style={{fontWeight:700,fontSize:14,textAlign:'right',padding:'6px 0',borderTop:'1px solid #eee'}}>Total: ₹{total.toFixed(2)}</div>
-              <button onClick={placeOrder} disabled={placing} style={{width:'100%',padding:'9px 0',background:G,color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:13,fontWeight:600,marginTop:6,fontFamily:'inherit'}}>{placing?'Placing…':'Place Order'}</button>
+              <button onClick={placeOrder} disabled={placing} style={{width:'100%',padding:'9px 0',background:G,color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:13,fontWeight:600,marginTop:6,fontFamily:'inherit'}}>{placing?'Redirecting…':'Checkout & Pay'}</button>
             </>}
             {msg&&<div style={{marginTop:8,fontSize:11,color:'#444',textAlign:'center'}}>{msg}</div>}
           </div>

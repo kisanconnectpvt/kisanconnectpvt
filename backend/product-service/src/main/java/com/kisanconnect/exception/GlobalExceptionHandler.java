@@ -23,12 +23,17 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         String msg = ex.getMessage();
         if (msg != null) {
-            if (msg.contains("not found"))           status = HttpStatus.NOT_FOUND;
-            else if (msg.contains("already"))        status = HttpStatus.CONFLICT;
-            else if (msg.contains("Not authorized")) status = HttpStatus.FORBIDDEN;
+            if (msg.contains("not found"))               status = HttpStatus.NOT_FOUND;
+            else if (msg.contains("already"))            status = HttpStatus.CONFLICT;
+            else if (msg.contains("Not authorized"))     status = HttpStatus.FORBIDDEN;
             else if (msg.contains("Invalid credentials")) status = HttpStatus.UNAUTHORIZED;
         }
         return buildError(status, msg != null ? msg : "Unexpected error", null);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException ex) {
+        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
     }
 
     @ExceptionHandler(Exception.class)

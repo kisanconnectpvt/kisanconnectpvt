@@ -5,6 +5,7 @@ import com.kisanconnect.entity.User;
 import com.kisanconnect.kafka.UserEventProducer;
 import com.kisanconnect.repository.UserRepository;
 import com.kisanconnect.security.JwtUtil;
+import com.kisanconnect.exception.AuthenticationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,9 +34,9 @@ public class UserService {
 
     public AuthResponse login(LoginRequest req) {
         User user = repo.findByEmail(req.getEmail())
-            .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+            .orElseThrow(() -> new AuthenticationException("Invalid credentials"));
         if (!encoder.matches(req.getPassword(), user.getPassword()))
-            throw new RuntimeException("Invalid credentials");
+            throw new AuthenticationException("Invalid credentials");
         return buildAuth(user);
     }
 

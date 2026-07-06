@@ -31,12 +31,20 @@ if ($PushToRegistry) {
     docker push $Registry/kisanconnect/frontend:local
 }
 
-Write-Host "Creating secret (kisan-secret) if not exists..."
-if (-not (kubectl get secret kisan-secret -n default -o name 2>$null)) {
-    kubectl create secret generic kisan-secret --from-literal=DATABASE_USERNAME=kcuser --from-literal=DATABASE_PASSWORD=kcpass --from-literal=JWT_SECRET=kisanconnect-local-secret-key-change-in-prod-at-least-32-chars
-} else {
-    Write-Host "Secret exists — skipping creation"
+Write-Host "Creating or updating secret (kisan-secret)..."
+$secretArgs = @(
+    "--from-literal=DATABASE_USERNAME=kcuser",
+    "--from-literal=DATABASE_PASSWORD=kcpass",
+    "--from-literal=JWT_SECRET=kisanconnect-local-secret-key-change-in-prod-at-least-32-chars"
+)
+if ($env:STRIPE_SECRET_KEY) {
+    $secretArgs += "--from-literal=STRIPE_SECRET_KEY=$env:STRIPE_SECRET_KEY"
 }
+if ($env:STRIPE_PUBLISHABLE_KEY) {
+    $secretArgs += "--from-literal=STRIPE_PUBLISHABLE_KEY=$env:STRIPE_PUBLISHABLE_KEY"
+}
+
+kubectl create secret generic kisan-secret @secretArgs --dry-run=client -o yaml | kubectl apply -f -
 
 Write-Host "Applying K8s manifests..."
 kubectl apply -f k8s-manifests/configmap.yaml

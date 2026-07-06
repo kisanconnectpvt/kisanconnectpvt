@@ -111,6 +111,15 @@ services:
     ports:
       - "8084:8084"
 
+  payment-service:
+    build:
+      context: ./backend/payment-service
+      dockerfile: Dockerfile
+    container_name: kc-payment-service
+    env_file: .env.local
+    ports:
+      - "8085:8085"
+
   frontend:
     build:
       context: ./frontend

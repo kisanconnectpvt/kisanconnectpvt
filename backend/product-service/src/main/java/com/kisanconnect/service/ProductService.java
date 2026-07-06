@@ -6,7 +6,9 @@ import com.kisanconnect.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service @RequiredArgsConstructor
@@ -29,7 +31,25 @@ public class ProductService {
         Product.Scale scaleEnum = scale != null ? Product.Scale.valueOf(scale.toUpperCase()) : null;
         String categoryLower = category != null ? category.toLowerCase() : null;
         String keywordPattern = keyword != null ? "%" + keyword.toLowerCase() + "%" : null;
-        return repo.search(scaleEnum, category, categoryLower, keywordPattern).stream().map(this::toResponse).collect(Collectors.toList());
+        return repo.search(scaleEnum, categoryLower, keywordPattern).stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void decreaseStock(UUID productId, BigDecimal quantity) {
+        if (quantity == null || quantity.signum() <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero");
+        }
+
+        Product product = repo.findById(productId).orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+        BigDecimal currentStock = product.getStockQty() == null ? BigDecimal.ZERO : product.getStockQty();
+
+        if (currentStock.compareTo(quantity) < 0) {
+            throw new RuntimeException("Insufficient stock for product: " + productId);
+        }
+
+        product.setStockQty(currentStock.subtract(quantity));
+        repo.save(product);
+        eventProducer.publishProductUpdated(product);
     }
 
     public List<ProductResponse> listByFarmer(UUID farmerId) {

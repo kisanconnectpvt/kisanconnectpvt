@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 // Railway injects REACT_APP_ env vars at build time via Vercel/Railway env settings
-const USER_API    = process.env.REACT_APP_USER_SERVICE_URL    || 'http://localhost:8081';
-const PRODUCT_API = process.env.REACT_APP_PRODUCT_SERVICE_URL || 'http://localhost:8082';
-const ORDER_API   = process.env.REACT_APP_ORDER_SERVICE_URL   || 'http://localhost:8083';
+const USER_API      = process.env.REACT_APP_USER_SERVICE_URL    || 'http://localhost:8081';
+const PRODUCT_API   = process.env.REACT_APP_PRODUCT_SERVICE_URL || 'http://localhost:8082';
+const ORDER_API     = process.env.REACT_APP_ORDER_SERVICE_URL   || 'http://localhost:8083';
+const PAYMENT_API   = process.env.REACT_APP_PAYMENT_SERVICE_URL || 'http://localhost:8085';
 
 const token = () => localStorage.getItem('kc_token');
 
@@ -16,8 +17,9 @@ const withAuth = (config) => {
 export const userApi    = axios.create({ baseURL: USER_API });
 export const productApi = axios.create({ baseURL: PRODUCT_API });
 export const orderApi   = axios.create({ baseURL: ORDER_API });
+export const paymentApi = axios.create({ baseURL: PAYMENT_API });
 
-[userApi, productApi, orderApi].forEach(inst => {
+[userApi, productApi, orderApi, paymentApi].forEach(inst => {
   inst.interceptors.request.use(withAuth);
   inst.interceptors.response.use(r => r, err => {
     if (err.response?.status === 401) {
@@ -53,4 +55,12 @@ export const orderService = {
   myOrders:     ()      => orderApi.get('/api/v1/orders/my'),
   getById:      (id)    => orderApi.get(`/api/v1/orders/${id}`),
   updateStatus: (id, s) => orderApi.patch(`/api/v1/orders/${id}/status`, null, { params: { status: s } }),
+};
+
+// ── Payments ───────────────────────────────────────────────────────────────
+export const paymentService = {
+  createOrder: (data) => paymentApi.post('/api/v1/payments/orders', data),
+  verify:      (data) => paymentApi.post('/api/v1/payments/verify', data),
+  createStripeIntent: (data) => paymentApi.post('/api/v1/payments/stripe/intent', data),
+  verifyStripePayment: (data) => paymentApi.post('/api/v1/payments/stripe/verify', data),
 };

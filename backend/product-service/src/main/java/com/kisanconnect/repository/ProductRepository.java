@@ -12,10 +12,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     @Query("SELECT p FROM Product p WHERE p.status = 'ACTIVE' " +
            "AND (:scale IS NULL OR p.scale = :scale) " +
-           "AND (:category IS NULL OR lower(p.category) = :categoryLower) " +
+           "AND (:categoryLower IS NULL OR lower(p.category) = :categoryLower) " +
            "AND (:keyword IS NULL OR lower(p.name) LIKE :keyword)")
     List<Product> search(@Param("scale") Product.Scale scale,
-                         @Param("category") String category,
                          @Param("categoryLower") String categoryLower,
                          @Param("keyword") String keyword);
 }

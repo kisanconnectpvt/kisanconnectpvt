@@ -8,7 +8,8 @@ export default function Login() {
   const [form,setForm] = useState({email:'',password:''});
   const [error,setError] = useState(''); const [loading,setLoading] = useState(false);
   const handle = e => setForm({...form,[e.target.name]:e.target.value});
-  const fill = role => setForm(role==='farmer'?{email:'ravi@farm.com',password:'password123'}:{email:'priya@buyer.com',password:'password123'});
+  // Seeded demo users use the password 'password' (matches DB seed hashes)
+  const fill = role => setForm(role==='farmer'?{email:'ravi@farm.com',password:'password'}:{email:'priya@buyer.com',password:'password'});
 
   const submit = async e => {
     e.preventDefault(); setError(''); setLoading(true);

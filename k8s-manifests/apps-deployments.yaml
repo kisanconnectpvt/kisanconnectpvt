@@ -96,12 +96,13 @@ kind: Service
 metadata:
   name: kc-product-service
 spec:
+  type: NodePort
   ports:
   - port: 8082
     targetPort: 8082
+    nodePort: 30082
   selector:
     app: kc-product-service
-  type: ClusterIP
 
 ---
 apiVersion: apps/v1
@@ -224,5 +225,51 @@ spec:
           httpGet:
             path: /actuator/health
             port: 8084
+          initialDelaySeconds: 15
+          periodSeconds: 10
+
+---
+# Payment service
+apiVersion: v1
+kind: Service
+metadata:
+  name: kc-payment-service
+spec:
+  ports:
+  - port: 8085
+    targetPort: 8085
+  selector:
+    app: kc-payment-service
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kc-payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kc-payment-service
+  template:
+    metadata:
+      labels:
+        app: kc-payment-service
+    spec:
+      containers:
+      - name: payment-service
+        image: kisanconnect/payment-service:local
+        ports:
+        - containerPort: 8085
+        envFrom:
+        - configMapRef:
+            name: kisan-config
+        - secretRef:
+            name: kisan-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8085
           initialDelaySeconds: 15
           periodSeconds: 10

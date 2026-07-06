@@ -5,6 +5,8 @@ metadata:
 data:
   # Service-visible URLs used by the services inside the cluster
   DATABASE_URL: "jdbc:postgresql://postgres:5432/kisanconnect"
+  PRODUCT_SERVICE_URL: "http://kc-product-service:8082"
+  PAYMENT_SERVICE_URL: "http://kc-payment-service:8085"
   KAFKA_URL: "kc-kafka:29092"
   KAFKA_SECURITY_PROTOCOL: "PLAINTEXT"
   KAFKA_SASL_MECHANISM: ""

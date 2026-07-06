@@ -22,8 +22,12 @@ docker build -t kisanconnect/frontend:local -f frontend/Dockerfile frontend
 kubectl create secret generic kisan-secret \
   --from-literal=DATABASE_USERNAME=kcuser \
   --from-literal=DATABASE_PASSWORD=kcpass \
-  --from-literal=JWT_SECRET=kisanconnect-local-secret-key-change-in-prod-at-least-32-chars
+  --from-literal=JWT_SECRET=kisanconnect-local-secret-key-change-in-prod-at-least-32-chars \
+  --from-literal=STRIPE_SECRET_KEY=your-stripe-secret-key \
+  --from-literal=STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
 ```
+
+If you do not have Stripe keys yet, omit the `STRIPE_*` values and add them later with `kubectl create secret generic` or by re-running the deploy script after setting the env vars.
 
 4. Apply manifests:
 
