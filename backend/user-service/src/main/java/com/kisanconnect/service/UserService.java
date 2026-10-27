@@ -54,6 +54,17 @@ public class UserService {
         return toResponse(repo.findById(id).orElseThrow(() -> new RuntimeException("User not found")));
     }
 
+    @Transactional
+    public UserResponse updateAddress(UUID id, AddressUpdateRequest request) {
+        User user = repo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setAddressLine1(blankToNull(request.getAddressLine1()));
+        user.setAddressLine2(blankToNull(request.getAddressLine2()));
+        user.setCity(blankToNull(request.getCity()));
+        user.setState(blankToNull(request.getState()));
+        user.setPostalCode(blankToNull(request.getPostalCode()));
+        return toResponse(repo.save(user));
+    }
+
     public List<UserResponse> getAllByRole(String role) {
         return repo.findAll().stream()
             .filter(u -> role == null || u.getRole().name().equalsIgnoreCase(role))

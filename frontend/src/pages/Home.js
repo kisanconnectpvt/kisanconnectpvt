@@ -3,22 +3,21 @@ import {Link} from 'react-router-dom';
 import './Home.css';
 
 const heroCards = [
-  {title: 'Farmer dashboard', desc: 'Create and manage products, inventory, and orders with one simple interface.'},
-  {title: 'Buyer marketplace', desc: 'Browse fresh produce, add to cart, and place secure orders fast.'},
-  {title: 'Live notifications', desc: 'Receive real-time updates when orders change status or new stock arrives.'},
+  {title: 'Straight from the farm', desc: 'Discover seasonal produce from growers near you.'},
+  {title: 'Fair prices, clear choices', desc: 'Compare fresh picks and choose what suits your table.'},
+  {title: 'A better harvest ahead', desc: 'Help local farms reach more homes and grow their business.'},
 ];
 
-const featureCards = [
-  {title: 'Secure login', value: 'JWT auth across services'},
-  {title: 'Fresh products', value: 'Search, filter, order'},
-  {title: 'Service-ready', value: 'Spring Boot APIs and React UI'},
-  {title: 'Local testing', value: 'Run with managed DB and Kafka without Docker'},
+const benefitCards = [
+  {icon: '🍅', title: 'Picked with care', value: 'Fresh produce from independent farmers.'},
+  {icon: '🤝', title: 'Closer connections', value: 'Buy directly and support local growers.'},
+  {icon: '🧺', title: 'Easy to shop', value: 'Find everyday essentials and seasonal favorites.'},
+  {icon: '🌱', title: 'Room to grow', value: 'A welcoming place for farms of every size.'},
 ];
 
 const roleCards = [
-  {title: 'Farmers', text: 'Add produce, manage stock, and see orders in one dashboard.'},
-  {title: 'Buyers', text: 'Search fresh produce, compare offers, and place purchase orders.'},
-  {title: 'Admins', text: 'Extend the platform with new services or improve workflows.'},
+  {title: 'For farmers', text: 'Showcase your harvest, reach new customers, and keep track of incoming orders.', action: 'Join as a farmer', to: '/register'},
+  {title: 'For buyers', text: 'Fill your basket with fresh finds and discover the people who grow your food.', action: 'Explore the market', to: '/products'},
 ];
 
 const steps = [
@@ -27,10 +26,10 @@ const steps = [
   {icon: '✅', title: 'Place order', description: 'Checkout securely and receive order updates as they move through the pipeline.'},
 ];
 
-const screenCards = [
-  {title: 'Farmer view', items: ['List products', 'Manage inventory', 'Track orders']},
-  {title: 'Buyer marketplace', items: ['Search by category', 'Add to cart', 'Place purchase orders']},
-  {title: 'Order status', items: ['View order history', 'Track deliveries', 'Confirm receipt']},
+const categories = [
+  {title: 'Vegetables', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=720&q=85', alt: 'A colorful basket of fresh vegetables'},
+  {title: 'Fruit', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=720&q=85', alt: 'Fresh seasonal fruit'},
+  {title: 'Grains', image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=720&q=85', alt: 'Golden grain ready for harvest'},
 ];
 
 export default function Home() {
@@ -39,16 +38,20 @@ export default function Home() {
       <header className="home-hero">
         <div className="home-hero-copy">
           <div className="home-eyebrow">KisanConnect</div>
-          <h1 className="home-hero-title">Farm-to-table marketplace for Indian farmers and fresh buyers.</h1>
-          <p>Buy, sell and manage fresh produce through a modern marketplace with farmer dashboards, buyer orders, product listings, notifications and secure login.</p>
+          <h1 className="home-hero-title">Good food begins with good connections.</h1>
+          <p>Meet the farmers behind your food. Shop fresh harvests, support local farms, and bring a little more goodness to your table.</p>
           <div className="home-actions">
-            <Link to="/register" className="home-button">Get Started</Link>
-            <Link to="/login" className="home-cta">Login</Link>
+            <Link to="/products" className="home-button">Explore fresh produce</Link>
+            <Link to="/register" className="home-cta">Grow with us</Link>
           </div>
         </div>
 
-        <div className="home-panel">
-          <h3>Built for small farms and modern buyers</h3>
+        <div className="home-hero-visual">
+          <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1400&q=90" alt="Sunlit green fields stretching toward the horizon" />
+          <div className="home-image-caption"><span>Grown close. Shared with care.</span><span>🌿</span></div>
+        </div>
+        <div className="home-panel home-hero-panel">
+          <h3>Fresh from the people who grow it</h3>
           <div className="home-panel-grid">
             {heroCards.map(card => (
               <div key={card.title} className="home-card">
@@ -62,12 +65,13 @@ export default function Home() {
 
       <main>
         <section className="home-section">
-          <span className="home-eyebrow">What is KisanConnect?</span>
-          <h2>Modern marketplace for local farm produce</h2>
-          <p>KisanConnect helps farmers and buyers connect directly, reducing middlemen and improving efficiency. It offers role-based dashboards, intuitive product discovery, and built-in order workflows.</p>
-          <div className="home-grid">
-            {featureCards.map(card => (
-              <div key={card.title} className="home-card">
+          <span className="home-eyebrow">The good stuff, closer</span>
+          <h2>Good things grow when we connect</h2>
+          <p className="home-section-intro">A more personal way to discover fresh food and support the farms that bring it to life.</p>
+          <div className="home-grid home-benefit-grid">
+            {benefitCards.map(card => (
+              <div key={card.title} className="home-card home-benefit-card">
+                <span className="home-benefit-icon" aria-hidden="true">{card.icon}</span>
                 <h3>{card.title}</h3>
                 <p>{card.value}</p>
               </div>
@@ -75,21 +79,15 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="home-section">
-          <div className="home-panel">
-            <h3>Download and run locally</h3>
-            <p>The website is fully runnable as a local frontend app. Create a project archive and launch the UI with the included instructions.</p>
-            <a href="/kisanconnect-source.zip" download className="home-button">Download Project Package</a>
-            <p className="home-footer-note">Use the included `.env.example` and local scripts to connect to managed or self-hosted services without Docker.</p>
-          </div>
-        </section>
-
-        <section className="home-section">
-          <div className="home-grid">
+        <section className="home-section home-roles-section">
+          <span className="home-eyebrow">Made for your side of the table</span>
+          <h2>There’s a place for you here</h2>
+          <div className="home-grid home-role-grid">
             {roleCards.map(card => (
-              <div key={card.title} className="home-card">
+              <div key={card.title} className="home-card home-role-card">
                 <h3>{card.title}</h3>
                 <p>{card.text}</p>
+                <Link to={card.to} className="home-text-link">{card.action}<span aria-hidden="true"> ↗</span></Link>
               </div>
             ))}
           </div>
@@ -110,23 +108,15 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="home-section">
-          <h2>Site preview</h2>
-          <div className="home-screenshots">
-            {screenCards.map(card => (
-              <div key={card.title} className="home-screen">
-                <div className="home-screen-header">
-                  <span className="home-dot" />
-                  <span className="home-dot" />
-                  <span className="home-dot" />
-                </div>
-                <div className="home-screen-body">
-                  <h3 className="home-screen-title">{card.title}</h3>
-                  <ul className="home-screen-list">
-                    {card.items.map(item => <li key={item}>{item}</li>)}
-                  </ul>
-                </div>
-              </div>
+        <section className="home-section home-category-section">
+          <span className="home-eyebrow">From nearby fields</span>
+          <h2>A little inspiration for your basket</h2>
+          <div className="home-category-grid">
+            {categories.map(category => (
+              <Link to="/products" className="home-category" key={category.title}>
+                <img src={category.image} alt={category.alt} loading="lazy" />
+                <span>{category.title}<span aria-hidden="true"> →</span></span>
+              </Link>
             ))}
           </div>
         </section>

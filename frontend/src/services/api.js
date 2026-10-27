@@ -36,6 +36,7 @@ export const authService = {
   register: (data) => userApi.post('/api/v1/users/register', data),
   login:    (data) => userApi.post('/api/v1/users/login', data),
   getUser:  (id)   => userApi.get(`/api/v1/users/${id}`),
+  updateAddress: (id, data) => userApi.put(`/api/v1/users/${id}/address`, data),
   listUsers:(role) => userApi.get('/api/v1/users', { params: { role } }),
 };
 

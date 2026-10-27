@@ -20,9 +20,18 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const updateUser = useCallback((updates) => {
+    setUser(current => {
+      if (!current) return current;
+      const updated = { ...current, ...updates };
+      localStorage.setItem('kc_user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider value={{
-      user, login, logout,
+      user, login, logout, updateUser,
       isFarmer: user?.role === 'FARMER',
       isBuyer:  user?.role === 'BUYER',
       isAdmin:  user?.role === 'ADMIN',

@@ -46,6 +46,18 @@ public class UserController {
         return ResponseEntity.ok(service.getById(id));
     }
 
+    @PutMapping("/{id}/address")
+    @Operation(summary = "Update your delivery or farm address", security = @SecurityRequirement(name = "Bearer"))
+    public ResponseEntity<UserResponse> updateAddress(@PathVariable UUID id,
+            @RequestHeader("Authorization") String authorization,
+            @Valid @RequestBody AddressUpdateRequest request) {
+        UUID authenticatedUserId = UUID.fromString(jwtUtil.getUserId(authorization.substring(7)));
+        if (!id.equals(authenticatedUserId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Cannot update another user's address");
+        }
+        return ResponseEntity.ok(service.updateAddress(id, request));
+    }
+
     @GetMapping("/internal/{id}")
     @Operation(summary = "Internal lookup of user by ID")
     public ResponseEntity<UserResponse> getInternalById(@PathVariable UUID id,

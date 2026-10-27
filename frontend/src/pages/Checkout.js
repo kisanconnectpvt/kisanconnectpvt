@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { paymentService } from '../services/api';
+import { authService, paymentService } from '../services/api';
 
 const PAYMENT_METHODS = [
   { key: 'UPI', label: 'UPI' },
@@ -18,12 +18,20 @@ function loadCart() {
 }
 
 export default function Checkout() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
   const [method, setMethod] = useState(PAYMENT_METHODS[0].key);
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    addressLine1: user?.addressLine1 || '',
+    addressLine2: user?.addressLine2 || '',
+    city: user?.city || '',
+    state: user?.state || '',
+    postalCode: user?.postalCode || '',
+  });
 
   useEffect(() => {
     if (!user) {
@@ -38,14 +46,39 @@ export default function Checkout() {
   }, [navigate, user]);
 
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [cart]);
+  const hasCompleteAddress = Boolean(user?.addressLine1?.trim() && user?.city?.trim()
+    && user?.state?.trim() && user?.postalCode?.trim());
   const buyerAddress = user ? [user.addressLine1, user.addressLine2, user.city && user.state ? `${user.city}, ${user.state}` : '', user.postalCode].filter(Boolean).join(', ') : '';
 
   const handleBack = () => {
     navigate('/products');
   };
 
+  const handleAddressChange = (event) => {
+    setAddressForm(current => ({ ...current, [event.target.name]: event.target.value }));
+  };
+
+  const handleSaveAddress = async (event) => {
+    event.preventDefault();
+    setSavingAddress(true);
+    setMessage('');
+    try {
+      const { data } = await authService.updateAddress(user.userId, addressForm);
+      updateUser(data);
+      setMessage('✅ Delivery address saved. You can continue to payment.');
+    } catch (err) {
+      setMessage('❌ ' + (err.response?.data?.message || 'Could not save your address. Please try again.'));
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
   const handlePay = async () => {
     if (!cart.length) return;
+    if (!hasCompleteAddress) {
+      setMessage('Add and save your delivery address before continuing to payment.');
+      return;
+    }
     setProcessing(true);
     setMessage('');
     try {
@@ -82,11 +115,26 @@ export default function Checkout() {
       <div style={{ maxWidth: 980, margin: '24px auto', display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20, padding: '0 24px' }}>
         <div style={{ background: '#fff', borderRadius: 14, padding: 24, boxShadow: '0 12px 30px rgba(0,0,0,.04)' }}>
           <h2 style={{ margin: 0, marginBottom: 16, fontSize: 20 }}>Review your order</h2>
-          {buyerAddress && <div style={{ marginBottom: 18, padding: 14, borderRadius: 10, background: '#f3f6f3', border: '1px solid #dfe7df' }}>
+          {hasCompleteAddress && <div style={{ marginBottom: 18, padding: 14, borderRadius: 10, background: '#f3f6f3', border: '1px solid #dfe7df' }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#2d6a4f', marginBottom: 6 }}>Shipping address</div>
             <div style={{ fontSize: 13, color: '#444' }}>{buyerAddress}</div>
           </div>}
           {!cart.length && <p style={{ color: '#555' }}>Your cart is empty. Add items to proceed with payment.</p>}
+          {!hasCompleteAddress && <form onSubmit={handleSaveAddress} style={{ marginBottom: 20, padding: 16, background: '#fff8e8', border: '1px solid #f0dfb8', borderRadius: 8 }}>
+            <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>Add your delivery address</h3>
+            <p style={{ margin: '0 0 12px', fontSize: 13, color: '#5d625d' }}>We need this to place and deliver your order. You can add it now without returning to registration.</p>
+            {[['addressLine1','Address line 1','House number, street, village'],['addressLine2','Address line 2 (optional)','Colony or landmark'],['city','City','City'],['state','State','State'],['postalCode','Postal code','PIN code']].map(([name,label,placeholder]) => (
+              <label key={name} style={{ display: 'block', marginTop: 10, fontSize: 12, fontWeight: 600, color: '#34443b' }}>
+                {label}
+                <input name={name} value={addressForm[name]} onChange={handleAddressChange} placeholder={placeholder}
+                  required={name !== 'addressLine2'} autoComplete={name === 'addressLine1' ? 'address-line1' : name === 'addressLine2' ? 'address-line2' : name === 'postalCode' ? 'postal-code' : name === 'city' ? 'address-level2' : 'address-level1'}
+                  style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 4, padding: '10px 11px', border: '1px solid #cfd8d1', borderRadius: 6, font: 'inherit', fontWeight: 400 }} />
+              </label>
+            ))}
+            <button type="submit" disabled={savingAddress} style={{ marginTop: 14, padding: '10px 14px', background: '#2d6a4f', color: '#fff', border: 0, borderRadius: 6, fontWeight: 700, cursor: savingAddress ? 'wait' : 'pointer' }}>
+              {savingAddress ? 'Saving address…' : 'Save delivery address'}
+            </button>
+          </form>}
           {cart.map(item => (
             <div key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid #eee' }}>
               <div>

@@ -27,6 +27,14 @@ public class UserDto {
         @NotBlank private String password;
     }
 
+    @Data public static class AddressUpdateRequest {
+        @NotBlank @Size(max=150) private String addressLine1;
+        @Size(max=150) private String addressLine2;
+        @NotBlank @Size(max=80) private String city;
+        @NotBlank @Size(max=80) private String state;
+        @NotBlank @Size(max=20) private String postalCode;
+    }
+
     @Data @lombok.Builder public static class AuthResponse {
         private String token;
         private String tokenType;
