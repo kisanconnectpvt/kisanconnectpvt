@@ -11,8 +11,13 @@ public class UserDto {
     @Data public static class RegisterRequest {
         @NotBlank @Size(min=2,max=120) private String name;
         @NotBlank @Email private String email;
-        @Pattern(regexp="^[6-9]\\d{9}$", message="Enter a valid 10-digit mobile number")
+        @Pattern(regexp="(^$|^[6-9]\\d{9}$)", message="Enter a valid 10-digit mobile number")
         private String phone;
+        @Size(max=150) private String addressLine1;
+        @Size(max=150) private String addressLine2;
+        @Size(max=80) private String city;
+        @Size(max=80) private String state;
+        @Size(max=20) private String postalCode;
         @NotBlank @Size(min=6) private String password;
         @NotNull private User.Role role;
     }
@@ -28,6 +33,12 @@ public class UserDto {
         private UUID userId;
         private String name;
         private String email;
+        private String phone;
+        private String addressLine1;
+        private String addressLine2;
+        private String city;
+        private String state;
+        private String postalCode;
         private User.Role role;
     }
 
@@ -36,6 +47,11 @@ public class UserDto {
         private String name;
         private String email;
         private String phone;
+        private String addressLine1;
+        private String addressLine2;
+        private String city;
+        private String state;
+        private String postalCode;
         private User.Role role;
         private String status;
         private LocalDateTime createdAt;

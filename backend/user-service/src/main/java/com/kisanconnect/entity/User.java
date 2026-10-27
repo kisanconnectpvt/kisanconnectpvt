@@ -14,6 +14,11 @@ public class User {
     @Column(nullable = false) private String name;
     @Column(nullable = false, unique = true) private String email;
     private String phone;
+    private String addressLine1;
+    private String addressLine2;
+    private String city;
+    private String state;
+    private String postalCode;
     @Column(nullable = false) private String password;
     @Enumerated(EnumType.STRING) @Column(nullable = false) private Role role;
     @Column(nullable = false) private String status = "ACTIVE";

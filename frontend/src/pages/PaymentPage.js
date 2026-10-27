@@ -1,7 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
-import { CardElement, Elements, useElements, useStripe } from '@stripe/react-stripe-js';
 import { orderService, paymentService } from '../services/api';
 
 const STORAGE_KEY = 'kc_pending_payment';
@@ -18,114 +16,15 @@ function clearPendingPayment() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-function StripePaymentForm({ pending, onSuccess, onError }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [upiVpa, setUpiVpa] = useState('');
-  const [statusMessage, setStatusMessage] = useState('');
-  const [processing, setProcessing] = useState(false);
-
-  const handleUpiPayment = async () => {
-    if (!stripe) {
-      onError('Stripe has not loaded yet.');
-      return;
-    }
-    if (!upiVpa) {
-      onError('Please enter your UPI ID.');
-      return;
-    }
-
-    setProcessing(true);
-    setStatusMessage('Processing UPI payment...');
-
-    const { error, paymentIntent } = await stripe.confirmUPIPayment(pending.clientSecret, {
-      payment_method: {
-        type: 'upi',
-        upi: {
-          vpa: upiVpa,
-        },
-      },
-    });
-
-    if (error) {
-      setProcessing(false);
-      setStatusMessage('UPI payment failed.');
-      onError(error.message || 'UPI payment failed.');
-      return;
-    }
-
-    setProcessing(false);
-
-    if (paymentIntent?.status === 'succeeded') {
-      setStatusMessage('Payment completed. Verifying...');
-      onSuccess(paymentIntent);
-      return;
-    }
-
-    setStatusMessage(`Payment status: ${paymentIntent?.status}.`);
-    onError(`Payment status: ${paymentIntent?.status}.`);
-  };
-
-  const handleCardPayment = async () => {
-    if (!stripe || !elements) {
-      onError('Stripe has not loaded yet.');
-      return;
-    }
-    setProcessing(true);
-    setStatusMessage('Processing card payment...');
-
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
-      onError('Card element is not available.');
-      setProcessing(false);
-      return;
-    }
-
-    const { error, paymentIntent } = await stripe.confirmCardPayment(pending.clientSecret, {
-      payment_method: { card: cardElement },
-    });
-
-    if (error) {
-      setProcessing(false);
-      setStatusMessage('Card payment failed.');
-      onError(error.message || 'Card payment failed.');
-      return;
-    }
-
-    setProcessing(false);
-    setStatusMessage('Payment completed. Verifying...');
-    onSuccess(paymentIntent);
-  };
-
-  if (!pending) return null;
-
-  return (
-    <div>
-      {pending.method === 'UPI' ? (
-        <div style={{ marginTop: 16, padding: 20, borderRadius: 14, background: '#fff', border: '1px solid #ddd' }}>
-          <label style={{ display: 'block', marginBottom: 12, fontWeight: 600 }}>Enter UPI ID</label>
-          <input
-            value={upiVpa}
-            onChange={(e) => setUpiVpa(e.target.value)}
-            placeholder="example@upi"
-            style={{ width: '100%', padding: '12px', borderRadius: 10, border: '1px solid #ccc', marginBottom: 18 }}
-          />
-          <button onClick={handleUpiPayment} disabled={processing || !stripe} style={{ width: '100%', padding: '12px 0', background: '#2d6a4f', color: '#fff', border: 'none', borderRadius: 10, cursor: processing ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700 }}>
-            {processing ? 'Completing UPI payment…' : 'Pay with UPI'}
-          </button>
-          {statusMessage && <p style={{ marginTop: 14, color: '#2d6a4f' }}>{statusMessage}</p>}
-        </div>
-      ) : (
-        <div style={{ marginTop: 16, padding: 20, borderRadius: 14, background: '#fff', border: '1px solid #ddd' }}>
-          <CardElement options={{ style: { base: { fontSize: '16px', color: '#32325d', '::placeholder': { color: '#aab7c4' } } } }} />
-          <button onClick={handleCardPayment} disabled={processing || !stripe} style={{ marginTop: 18, width: '100%', padding: '12px 0', background: '#2d6a4f', color: '#fff', border: 'none', borderRadius: 10, cursor: processing ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700 }}>
-            {processing ? 'Completing card payment…' : 'Pay with card'}
-          </button>
-          {statusMessage && <p style={{ marginTop: 14, color: '#2d6a4f' }}>{statusMessage}</p>}
-        </div>
-      )}
-    </div>
-  );
+function loadRazorpayCheckout() {
+  if (window.Razorpay) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
 }
 
 export default function PaymentPage() {
@@ -133,7 +32,6 @@ export default function PaymentPage() {
   const [pending, setPending] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
-  const [stripePromise, setStripePromise] = useState(null);
 
   useEffect(() => {
     const saved = loadPendingPayment();
@@ -142,9 +40,6 @@ export default function PaymentPage() {
       return;
     }
     setPending(saved);
-    if (saved.publishableKey) {
-      setStripePromise(loadStripe(saved.publishableKey));
-    }
   }, [navigate]);
 
   const total = useMemo(() => pending?.amount ?? 0, [pending]);
@@ -153,20 +48,29 @@ export default function PaymentPage() {
     navigate('/checkout');
   };
 
-  const handlePaymentSuccess = useCallback(async (paymentIntent) => {
+  const handlePaymentSuccess = useCallback(async (gatewayPayment) => {
     if (!pending) return;
     setProcessing(true);
     setMessage('Verifying payment...');
 
     try {
-      const verifyResponse = await paymentService.verifyStripePayment({ paymentIntentId: paymentIntent.id });
+      const verifyResponse = await paymentService.verify({
+        razorpayOrderId: gatewayPayment.razorpay_order_id,
+        razorpayPaymentId: gatewayPayment.razorpay_payment_id,
+        razorpaySignature: gatewayPayment.razorpay_signature,
+      });
       if (!verifyResponse.data.verified) {
         setMessage('❌ Payment verification failed: ' + verifyResponse.data.message);
         setProcessing(false);
         return;
       }
 
-      const orderPayload = { items: pending.items.map(({ name, ...item }) => item) };
+      const orderPayload = {
+        items: pending.items.map(({ name, unitPrice, farmerId, scale, ...item }) => item),
+        razorpayOrderId: gatewayPayment.razorpay_order_id,
+        razorpayPaymentId: gatewayPayment.razorpay_payment_id,
+        razorpaySignature: gatewayPayment.razorpay_signature,
+      };
       const response = await orderService.create(orderPayload);
       clearPendingPayment();
       localStorage.removeItem('kc_checkout_cart');
@@ -177,9 +81,59 @@ export default function PaymentPage() {
     }
   }, [navigate, pending]);
 
-  const handleError = useCallback((errorMessage) => {
-    setMessage('❌ ' + errorMessage);
-  }, []);
+  const handlePay = async () => {
+    if (!pending || !pending.keyId) {
+      setMessage('❌ Payment gateway is not configured. Please contact support.');
+      return;
+    }
+    setProcessing(true);
+    setMessage('');
+    try {
+      const loaded = await loadRazorpayCheckout();
+      if (!loaded) throw new Error('Unable to load Razorpay Checkout. Check your connection and try again.');
+
+      const method = pending.method.toLowerCase();
+      const methodLabels = {
+        upi: 'UPI',
+        card: 'Cards',
+        netbanking: 'Netbanking',
+        wallet: 'Wallet',
+      };
+      const checkout = new window.Razorpay({
+        key: pending.keyId,
+        order_id: pending.orderId,
+        amount: pending.amount,
+        currency: pending.currency,
+        method,
+        config: {
+          display: {
+            blocks: {
+              selectedMethod: {
+                name: `Pay via ${methodLabels[method] || 'selected method'}`,
+                instruments: [{ method }],
+              },
+            },
+            sequence: ['block.selectedMethod'],
+            preferences: { show_default_blocks: false },
+          },
+        },
+        name: 'KisanConnect',
+        description: pending.description,
+        prefill: pending.customer,
+        handler: handlePaymentSuccess,
+        modal: { ondismiss: () => setProcessing(false) },
+        theme: { color: '#2d6a4f' },
+      });
+      checkout.on('payment.failed', (event) => {
+        setProcessing(false);
+        setMessage('❌ ' + (event.error?.description || 'Payment failed. Please try again.'));
+      });
+      checkout.open();
+    } catch (err) {
+      setProcessing(false);
+      setMessage('❌ ' + (err.message || 'Unable to start payment.'));
+    }
+  };
 
   if (!pending) {
     return null;
@@ -214,13 +168,13 @@ export default function PaymentPage() {
           <h2 style={{ margin: '0 0 16px', fontSize: 20 }}>Payment method</h2>
           <div style={{ padding: 18, borderRadius: 14, background: '#f1f8f2', border: '1px solid #d8f0de', color: '#2d6a4f' }}>
             <p style={{ margin: 0, fontSize: 14 }}>Using <strong>{pending.method}</strong></p>
-            <p style={{ margin: '10px 0 0', fontSize: 13, color: '#555' }}>Your payment will be securely processed before the order is placed.</p>
+            <p style={{ margin: '10px 0 0', fontSize: 13, color: '#555' }}>Complete the payment in Razorpay Checkout. The order is placed only after server-side verification.</p>
           </div>
           <div style={{ marginTop: 24 }}>
-            <p style={{ margin: '0 0 20px', color: '#555' }}>Complete payment using Google Pay if supported by your browser.</p>
-            <Elements stripe={stripePromise} options={{ clientSecret: pending.clientSecret }}>
-              <StripePaymentForm pending={pending} onSuccess={handlePaymentSuccess} onError={handleError} />
-            </Elements>
+            <p style={{ margin: '0 0 20px', color: '#555' }}>Razorpay supports UPI apps and bank selection for netbanking.</p>
+            <button onClick={handlePay} disabled={processing} style={{ width: '100%', padding: '12px 0', background: '#2d6a4f', color: '#fff', border: 'none', borderRadius: 10, cursor: processing ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700 }}>
+              {processing ? 'Opening secure checkout…' : `Pay ₹${(total / 100).toFixed(2)} with ${pending.method === 'NETBANKING' ? 'Net Banking' : pending.method}`}
+            </button>
           </div>
           {message && <div style={{ marginTop: 20, padding: '12px 14px', borderRadius: 10, background: message.startsWith('❌') ? '#fdecea' : '#e8f5e9', color: message.startsWith('❌') ? '#a42222' : '#257a38' }}>{message}</div>}
         </div>

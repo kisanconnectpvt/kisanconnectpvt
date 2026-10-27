@@ -23,6 +23,7 @@ spring:
 jwt:
   secret: kisanconnect-test-secret-key-at-least-32-characters-long
   expiration-ms: 3600000
+  expiration-ms: 3600000
 
 logging:
   level:

@@ -4,10 +4,17 @@ import com.kisanconnect.entity.Product;
 import com.kisanconnect.kafka.ProductEventProducer;
 import com.kisanconnect.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -15,9 +22,17 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductRepository repo;
     private final ProductEventProducer eventProducer;
+    private final RestTemplate restTemplate;
+
+    @Value("${user.service.url:${USER_SERVICE_URL:http://localhost:8081}}")
+    private String userServiceUrl;
+
+    @Value("${internal.api-key:}")
+    private String internalApiKey;
 
     @Transactional
     public ProductResponse create(UUID farmerId, CreateRequest req) {
+        ensureFarmerHasAddress(farmerId);
         Product p = Product.builder().farmerId(farmerId).name(req.getName())
             .description(req.getDescription()).category(req.getCategory())
             .scale(req.getScale()).price(req.getPrice()).unit(req.getUnit())
@@ -58,6 +73,33 @@ public class ProductService {
 
     public ProductResponse getById(UUID id) {
         return toResponse(repo.findById(id).orElseThrow(() -> new RuntimeException("Product not found: " + id)));
+    }
+
+    private void ensureFarmerHasAddress(UUID farmerId) {
+        try {
+            String url = userServiceUrl + "/api/v1/users/internal/" + farmerId;
+            @SuppressWarnings("unchecked")
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("X-Internal-Api-Key", internalApiKey);
+                Map<String, Object> user = restTemplate.exchange(url, HttpMethod.GET,
+                    new HttpEntity<>(headers), Map.class).getBody();
+            if (user == null || !"FARMER".equals(user.get("role")) || !hasAddress(user)) {
+                throw new RuntimeException("Farmer address is required before creating a product listing.");
+            }
+        } catch (RestClientException ex) {
+            throw new RuntimeException("Unable to validate farmer address with user service.", ex);
+        }
+    }
+
+    private boolean hasAddress(Map<String, Object> user) {
+        return !isBlank((String) user.get("addressLine1"))
+            && !isBlank((String) user.get("city"))
+            && !isBlank((String) user.get("state"))
+            && !isBlank((String) user.get("postalCode"));
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
     @Transactional

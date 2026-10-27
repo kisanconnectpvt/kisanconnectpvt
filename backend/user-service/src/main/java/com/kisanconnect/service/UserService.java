@@ -22,14 +22,24 @@ public class UserService {
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
+        if (req.getRole() == User.Role.ADMIN) {
+            throw new IllegalArgumentException("Administrator accounts cannot be self-registered");
+        }
         if (repo.existsByEmail(req.getEmail()))
             throw new RuntimeException("Email already registered: " + req.getEmail());
         User user = User.builder()
-            .name(req.getName()).email(req.getEmail()).phone(req.getPhone())
+            .name(req.getName()).email(req.getEmail()).phone(blankToNull(req.getPhone()))
+            .addressLine1(blankToNull(req.getAddressLine1())).addressLine2(blankToNull(req.getAddressLine2()))
+            .city(blankToNull(req.getCity())).state(blankToNull(req.getState()))
+            .postalCode(blankToNull(req.getPostalCode()))
             .password(encoder.encode(req.getPassword())).role(req.getRole()).status("ACTIVE").build();
         user = repo.save(user);
         eventProducer.publishUserRegistered(user);
         return buildAuth(user);
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 
     public AuthResponse login(LoginRequest req) {
@@ -54,12 +64,17 @@ public class UserService {
         return AuthResponse.builder()
             .token(jwtUtil.generateToken(u.getEmail(), u.getRole().name(), u.getId().toString()))
             .tokenType("Bearer").userId(u.getId())
-            .name(u.getName()).email(u.getEmail()).role(u.getRole()).build();
+            .name(u.getName()).email(u.getEmail()).phone(u.getPhone())
+            .addressLine1(u.getAddressLine1()).addressLine2(u.getAddressLine2())
+            .city(u.getCity()).state(u.getState()).postalCode(u.getPostalCode())
+            .role(u.getRole()).build();
     }
 
     private UserResponse toResponse(User u) {
         return UserResponse.builder()
             .id(u.getId()).name(u.getName()).email(u.getEmail()).phone(u.getPhone())
+            .addressLine1(u.getAddressLine1()).addressLine2(u.getAddressLine2())
+            .city(u.getCity()).state(u.getState()).postalCode(u.getPostalCode())
             .role(u.getRole()).status(u.getStatus()).createdAt(u.getCreatedAt()).build();
     }
 }

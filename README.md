@@ -23,11 +23,16 @@ export KAFKA_URL=your-upstash-host:9092
 export KAFKA_SASL_JAAS_CONFIG="org.apache.kafka...full string...;"
 export JWT_SECRET=your-32-char-secret
 
-# 2. Deploy all 4 services to Fly.io
+# 2. Set additional required secrets
+export INTERNAL_API_KEY=your-separate-random-service-secret
+export RAZORPAY_KEY_ID=your-razorpay-key-id
+export RAZORPAY_KEY_SECRET=your-razorpay-key-secret
+
+# 3. Deploy backend services to Fly.io
 chmod +x deploy.sh
 ./deploy.sh
 
-# 3. Deploy frontend to Vercel
+# 4. Deploy frontend to Vercel
 # vercel.com → Import kisanconnect → root: frontend → add env vars
 ```
 
@@ -77,6 +82,10 @@ Notes:
 |--------|-------------------|-------------|
 | Farmer | ravi@farm.com     | password123 |
 | Buyer  | priya@buyer.com   | password123 |
+
+## Payments
+
+Checkout uses Razorpay Checkout for UPI, netbanking, cards, and wallets. Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in `.env.local` or the Kubernetes secret, using Razorpay test credentials during development. Configure `JWT_SECRET` with a strong shared secret and `INTERNAL_API_KEY` with a separate random service-to-service secret in every backend runtime. The payment service checks the signature, captured status, buyer, amount, and currency before an order can be created. Live payments require an activated Razorpay account, rotated credentials, and production payment/webhook operations.
 
 ## Services
 

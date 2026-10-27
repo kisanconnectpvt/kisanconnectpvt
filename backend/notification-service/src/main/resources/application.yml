@@ -17,6 +17,10 @@ spring:
         sasl.mechanism: ${KAFKA_SASL_MECHANISM:PLAIN}
         sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG:}
 
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: 86400000
+
 management:
   endpoints:
     web:

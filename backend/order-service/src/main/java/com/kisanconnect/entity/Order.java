@@ -11,6 +11,7 @@ public class Order {
     @Id @GeneratedValue(strategy=GenerationType.UUID) private UUID id;
     @Column(nullable=false) private UUID buyerId;
     @Column(nullable=false) private BigDecimal totalAmount;
+    @Column(name="razorpay_payment_id") private String razorpayPaymentId;
     @Enumerated(EnumType.STRING) @Column(nullable=false) private OrderStatus status = OrderStatus.PENDING;
     @OneToMany(mappedBy="order",cascade=CascadeType.ALL,orphanRemoval=true)
     @Builder.Default private List<OrderItem> items = new ArrayList<>();

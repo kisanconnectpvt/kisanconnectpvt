@@ -9,6 +9,13 @@ param(
     [string]$Registry = ""
 )
 
+$ErrorActionPreference = 'Stop'
+foreach ($required in 'DATABASE_USERNAME','DATABASE_PASSWORD','JWT_SECRET','INTERNAL_API_KEY','RAZORPAY_KEY_ID','RAZORPAY_KEY_SECRET') {
+    if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($required))) {
+        throw "Required secret environment variable is missing: $required"
+    }
+}
+
 Write-Host "Building images..."
 docker build -t kisanconnect/user-service:local -f backend/user-service/Dockerfile backend/user-service
 docker build -t kisanconnect/product-service:local -f backend/product-service/Dockerfile backend/product-service
@@ -32,19 +39,20 @@ if ($PushToRegistry) {
 }
 
 Write-Host "Creating or updating secret (kisan-secret)..."
-$secretArgs = @(
-    "--from-literal=DATABASE_USERNAME=kcuser",
-    "--from-literal=DATABASE_PASSWORD=kcpass",
-    "--from-literal=JWT_SECRET=kisanconnect-local-secret-key-change-in-prod-at-least-32-chars"
-)
-if ($env:STRIPE_SECRET_KEY) {
-    $secretArgs += "--from-literal=STRIPE_SECRET_KEY=$env:STRIPE_SECRET_KEY"
+$secretData = @{}
+foreach ($name in 'DATABASE_USERNAME','DATABASE_PASSWORD','JWT_SECRET','INTERNAL_API_KEY','RAZORPAY_KEY_ID','RAZORPAY_KEY_SECRET') {
+    $value = [Environment]::GetEnvironmentVariable($name)
+    $secretData[$name] = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($value))
 }
-if ($env:STRIPE_PUBLISHABLE_KEY) {
-    $secretArgs += "--from-literal=STRIPE_PUBLISHABLE_KEY=$env:STRIPE_PUBLISHABLE_KEY"
-}
-
-kubectl create secret generic kisan-secret @secretArgs --dry-run=client -o yaml | kubectl apply -f -
+$secretManifest = @{
+    apiVersion = 'v1'
+    kind = 'Secret'
+    metadata = @{ name = 'kisan-secret' }
+    type = 'Opaque'
+    data = $secretData
+} | ConvertTo-Json -Depth 5
+$secretManifest | kubectl apply -f -
+if ($LASTEXITCODE -ne 0) { throw 'Failed to apply kisan-secret.' }
 
 Write-Host "Applying K8s manifests..."
 kubectl apply -f k8s-manifests/configmap.yaml

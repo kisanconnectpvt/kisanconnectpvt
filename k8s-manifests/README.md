@@ -19,15 +19,16 @@ docker build -t kisanconnect/frontend:local -f frontend/Dockerfile frontend
 3. Create the secret used by Deployments (replace values if you changed `.env.local`):
 
 ```bash
-kubectl create secret generic kisan-secret \
+kubectl create secret generic kisan-secret \\
   --from-literal=DATABASE_USERNAME=kcuser \
   --from-literal=DATABASE_PASSWORD=kcpass \
-  --from-literal=JWT_SECRET=kisanconnect-local-secret-key-change-in-prod-at-least-32-chars \
-  --from-literal=STRIPE_SECRET_KEY=your-stripe-secret-key \
-  --from-literal=STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
+  --from-literal=JWT_SECRET=<generated-shared-jwt-secret> \\
+  --from-literal=INTERNAL_API_KEY=<generated-internal-service-key> \
+  --from-literal=RAZORPAY_KEY_ID=rzp_test_your_key_id \\
+  --from-literal=RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ```
 
-If you do not have Stripe keys yet, omit the `STRIPE_*` values and add them later with `kubectl create secret generic` or by re-running the deploy script after setting the env vars.
+Use a distinct random `INTERNAL_API_KEY` shared only by backend services. Never use the old documented JWT fallback. Use Razorpay test keys for development; replace them with live keys only after the account is approved and production safeguards are complete.
 
 4. Apply manifests:
 

@@ -17,10 +17,6 @@ function loadCart() {
   catch { return []; }
 }
 
-function clearCart() {
-  localStorage.removeItem(STORAGE_KEY);
-}
-
 export default function Checkout() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -42,6 +38,7 @@ export default function Checkout() {
   }, [navigate, user]);
 
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [cart]);
+  const buyerAddress = user ? [user.addressLine1, user.addressLine2, user.city && user.state ? `${user.city}, ${user.state}` : '', user.postalCode].filter(Boolean).join(', ') : '';
 
   const handleBack = () => {
     navigate('/products');
@@ -53,22 +50,19 @@ export default function Checkout() {
     setMessage('');
     try {
       const payload = {
-        orderId: crypto.randomUUID(),
-        currency: 'INR',
-        amount: Math.round(total * 100),
-        description: `KisanConnect order for ₹${total.toFixed(2)}`,
+        items: cart.map(({ productId, quantity }) => ({ productId, quantity })),
       };
-      const paymentResponse = await paymentService.createStripeIntent(payload);
-      const intent = paymentResponse.data;
+      const paymentResponse = await paymentService.createOrder(payload);
+      const gatewayOrder = paymentResponse.data;
       const pending = {
-        paymentIntentId: intent.paymentIntentId,
-        clientSecret: intent.clientSecret,
-        publishableKey: intent.publishableKey,
-        amount: intent.amount,
-        currency: intent.currency,
+        orderId: gatewayOrder.orderId,
+        keyId: gatewayOrder.keyId,
+        amount: gatewayOrder.amount,
+        currency: gatewayOrder.currency,
         method,
         items: cart,
-        description: payload.description,
+        description: gatewayOrder.description,
+        customer: { name: user.name, email: user.email, contact: user.phone || '' },
       };
       localStorage.setItem('kc_pending_payment', JSON.stringify(pending));
       navigate('/payment');
@@ -88,6 +82,10 @@ export default function Checkout() {
       <div style={{ maxWidth: 980, margin: '24px auto', display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20, padding: '0 24px' }}>
         <div style={{ background: '#fff', borderRadius: 14, padding: 24, boxShadow: '0 12px 30px rgba(0,0,0,.04)' }}>
           <h2 style={{ margin: 0, marginBottom: 16, fontSize: 20 }}>Review your order</h2>
+          {buyerAddress && <div style={{ marginBottom: 18, padding: 14, borderRadius: 10, background: '#f3f6f3', border: '1px solid #dfe7df' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#2d6a4f', marginBottom: 6 }}>Shipping address</div>
+            <div style={{ fontSize: 13, color: '#444' }}>{buyerAddress}</div>
+          </div>}
           {!cart.length && <p style={{ color: '#555' }}>Your cart is empty. Add items to proceed with payment.</p>}
           {cart.map(item => (
             <div key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid #eee' }}>
@@ -121,7 +119,7 @@ export default function Checkout() {
             </button>
           </div>
           <div style={{ fontSize: 13, color: '#555' }}>
-            <p style={{ margin: '0 0 6px' }}><strong>Note:</strong> UPI support requires a browser wallet/Google Pay flow. If your browser doesn’t support it, use the card payment option instead.</p>
+            <p style={{ margin: '0 0 6px' }}><strong>Note:</strong> UPI and netbanking are processed securely by Razorpay.</p>
             <p style={{ margin: 0 }}>Your order and payment details are secured before you are redirected to the buyer dashboard.</p>
           </div>
           {message && <div style={{ marginTop: 20, padding: '12px 14px', borderRadius: 10, background: message.startsWith('✅') ? '#e8f5e9' : '#fdecea', color: message.startsWith('✅') ? '#257a38' : '#a42222' }}>{message}</div>}

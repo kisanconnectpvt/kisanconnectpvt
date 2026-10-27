@@ -5,7 +5,7 @@ import {useAuth} from '../../context/AuthContext';
 
 export default function Register() {
   const {login} = useAuth(); const navigate = useNavigate();
-  const [form,setForm] = useState({name:'',email:'',phone:'',password:'',role:'BUYER'});
+  const [form,setForm] = useState({name:'',email:'',phone:'',addressLine1:'',addressLine2:'',city:'',state:'',postalCode:'',password:'',role:'BUYER'});
   const [error,setError] = useState(''); const [loading,setLoading] = useState(false);
   const handle = e => setForm({...form,[e.target.name]:e.target.value});
 
@@ -34,6 +34,17 @@ export default function Register() {
           <input style={s.input} name="email" type="email" value={form.email} onChange={handle} placeholder="you@example.com" required/>
           <label style={s.label}>Phone</label>
           <input style={s.input} name="phone" value={form.phone} onChange={handle} placeholder="10-digit mobile number"/>
+          <div style={{fontSize:12,color:'#666',margin:'10px 0 0'}}>Address is optional during signup. Farmers need it when listing products and buyers need it when placing orders.</div>
+          <label style={s.label}>Address line 1</label>
+          <input style={s.input} name="addressLine1" value={form.addressLine1} onChange={handle} placeholder="House number, street, village"/>
+          <label style={s.label}>Address line 2</label>
+          <input style={s.input} name="addressLine2" value={form.addressLine2} onChange={handle} placeholder="Colony / Landmark (optional)"/>
+          <label style={s.label}>City</label>
+          <input style={s.input} name="city" value={form.city} onChange={handle} placeholder="City"/>
+          <label style={s.label}>State</label>
+          <input style={s.input} name="state" value={form.state} onChange={handle} placeholder="State"/>
+          <label style={s.label}>Postal code</label>
+          <input style={s.input} name="postalCode" value={form.postalCode} onChange={handle} placeholder="PIN code"/>
           <label style={s.label}>Password</label>
           <input style={s.input} name="password" type="password" value={form.password} onChange={handle} placeholder="Min 6 characters" required minLength={6}/>
           <label style={s.label}>I am a</label>

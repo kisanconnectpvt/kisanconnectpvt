@@ -6,6 +6,8 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -15,10 +17,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.*;
 import java.util.List;
+import java.util.Arrays;
 
 @Configuration @EnableWebSecurity @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
+    @Value("${app.cors.allowed-origins:https://kisanconnect.in,https://www.kisanconnect.in}")
+    private String allowedOrigins;
 
     @Bean public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(c -> c.disable())
@@ -26,7 +31,7 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
                 .requestMatchers("/api/v1/users/register","/api/v1/users/login",
-                    "/swagger-ui/**","/swagger-ui.html","/api-docs/**","/actuator/**").permitAll()
+                    "/api/v1/users/internal/**","/swagger-ui/**","/swagger-ui.html","/api-docs/**","/actuator/**").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
@@ -36,7 +41,7 @@ public class SecurityConfig {
 
     @Bean public CorsConfigurationSource corsSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOriginPatterns(List.of("*"));
+        cfg.setAllowedOrigins(Arrays.stream(allowedOrigins.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList());
         cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
         cfg.setAllowCredentials(true);

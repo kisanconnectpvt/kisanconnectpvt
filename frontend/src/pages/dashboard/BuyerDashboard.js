@@ -26,7 +26,11 @@ export default function BuyerDashboard() {
         </div>
       </div>
       <div style={{maxWidth:900,margin:'0 auto',padding:28}}>
-        <h2 style={{margin:'0 0 20px',fontSize:20,color:'#1a1a1a'}}>My Orders</h2>
+        <h2 style={{margin:'0 0 14px',fontSize:20,color:'#1a1a1a'}}>My Orders</h2>
+        {user?.addressLine1 && <div style={{marginBottom:18,padding:16,borderRadius:10,background:'#f3f6f3',border:'1px solid #dfe7df'}}>
+          <div style={{fontSize:13,fontWeight:700,color:'#2d6a4f',marginBottom:6}}>Shipping address</div>
+          <div style={{fontSize:13,color:'#444'}}>{[user.addressLine1,user.addressLine2,[user.city,user.state].filter(Boolean).join(', '),user.postalCode].filter(Boolean).join(', ')}</div>
+        </div>}
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14,marginBottom:22}}>
           {[{label:'Total Orders',value:stats.total,icon:'📋',bg:'#f3f4f6'},{label:'Pending',value:stats.pending,icon:'⏳',bg:'#fff8e1'},{label:'Delivered',value:stats.delivered,icon:'📦',bg:'#e8f5e9'},{label:'Total Spent',value:'₹'+stats.spent.toFixed(0),icon:'💰',bg:'#e3f2fd'}].map(st=>(
             <div key={st.label} style={{borderRadius:10,padding:'15px 16px',display:'flex',flexDirection:'column',gap:3,border:'1px solid rgba(0,0,0,.06)',background:st.bg}}>

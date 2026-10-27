@@ -39,6 +39,10 @@ export default function FarmerDashboard() {
           <button style={{...nb,background:'#c0392b',border:'none'}} onClick={()=>{logout();navigate('/login');}}>Logout</button>
         </div>
       </div>
+      {user?.addressLine1 && <div style={{maxWidth:1100,margin:'18px auto 0',padding:16,borderRadius:10,background:'#f3f6f3',border:'1px solid #dfe7df'}}>
+        <div style={{fontSize:13,fontWeight:700,color:'#2d6a4f',marginBottom:6}}>Farm address</div>
+        <div style={{fontSize:13,color:'#444'}}>{[user.addressLine1,user.addressLine2,[user.city,user.state].filter(Boolean).join(', '),user.postalCode].filter(Boolean).join(', ')}</div>
+      </div>}
       <div style={{maxWidth:1100,margin:'0 auto',padding:28}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:22}}>
           <div><h2 style={{margin:0,fontSize:20,color:'#1a1a1a'}}>My Farm Dashboard</h2><p style={{margin:'3px 0 0',color:'#888',fontSize:12}}>Manage your product listings</p></div>

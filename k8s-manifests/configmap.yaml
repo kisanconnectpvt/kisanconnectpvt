@@ -7,6 +7,8 @@ data:
   DATABASE_URL: "jdbc:postgresql://postgres:5432/kisanconnect"
   PRODUCT_SERVICE_URL: "http://kc-product-service:8082"
   PAYMENT_SERVICE_URL: "http://kc-payment-service:8085"
+  USER_SERVICE_URL: "http://kc-user-service:8081"
+  APP_CORS_ALLOWED_ORIGINS: "http://localhost:30080,https://kisanconnect.in,https://www.kisanconnect.in"
   KAFKA_URL: "kc-kafka:29092"
   KAFKA_SECURITY_PROTOCOL: "PLAINTEXT"
   KAFKA_SASL_MECHANISM: ""

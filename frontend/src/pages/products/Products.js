@@ -48,6 +48,9 @@ export default function Products() {
           {!user&&<button style={{...nb,background:'#fff',color:G,fontWeight:600}} onClick={()=>navigate('/login')}>Login</button>}
         </div>
       </div>
+      {user?.addressLine1 && <div style={{padding:'10px 22px',background:'#e8f5ef',color:'#234d3d',fontSize:13}}>
+        <strong>{isBuyer ? 'Deliver to:' : 'Your address:'}</strong> {([user.addressLine1,user.addressLine2,[user.city,user.state].filter(Boolean).join(', '),user.postalCode].filter(Boolean).join(', '))}
+      </div>}
       <div style={{padding:'12px 22px',background:'#fff',borderBottom:'1px solid #e8e8e8',display:'flex',gap:14,flexWrap:'wrap',alignItems:'center'}}>
         <input style={{flex:1,minWidth:160,padding:'8px 12px',border:'1px solid #ddd',borderRadius:8,fontSize:13,fontFamily:'inherit'}}
           placeholder="🔍  Search products…" value={keyword} onChange={e=>setKeyword(e.target.value)}/>

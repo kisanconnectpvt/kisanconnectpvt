@@ -1,0 +1,29 @@
+# KisanConnect payment service Fly.io configuration
+
+app = "kc-payment-service"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8085"
+  JAVA_OPTS = "-Xmx400m -Xms200m"
+
+[http_service]
+  internal_port = 8085
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "60s"
+    interval = "15s"
+    method = "GET"
+    path = "/actuator/health"
+    timeout = "10s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

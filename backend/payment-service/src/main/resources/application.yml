@@ -5,6 +5,12 @@ spring:
   application:
     name: kisan-payment-service
 
+jwt:
+  secret: ${JWT_SECRET}
+
+internal:
+  api-key: ${INTERNAL_API_KEY}
+
 management:
   endpoints:
     web:
@@ -23,10 +29,6 @@ springdoc:
 razorpay:
   key-id: ${RAZORPAY_KEY_ID:}
   key-secret: ${RAZORPAY_KEY_SECRET:}
-
-stripe:
-  secret-key: ${STRIPE_SECRET_KEY:}
-  publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
 
 app:
   base-url: ${APP_BASE_URL:http://localhost:3000}

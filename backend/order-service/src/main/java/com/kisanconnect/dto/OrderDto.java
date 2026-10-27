@@ -10,13 +10,13 @@ import java.util.*;
 public class OrderDto {
     @Data public static class OrderItemRequest {
         @NotNull private UUID productId;
-        @NotNull private UUID farmerId;
         @NotNull @DecimalMin("0.01") private BigDecimal quantity;
-        @NotNull @DecimalMin("0.01") private BigDecimal unitPrice;
-        @NotBlank private String scale;
     }
     @Data public static class CreateOrderRequest {
         @NotEmpty @Valid private List<OrderItemRequest> items;
+        @NotBlank private String razorpayOrderId;
+        @NotBlank private String razorpayPaymentId;
+        @NotBlank private String razorpaySignature;
     }
     @Data @lombok.Builder public static class OrderItemResponse {
         private UUID id; private UUID productId; private UUID farmerId;

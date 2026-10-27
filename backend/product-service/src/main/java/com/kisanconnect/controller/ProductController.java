@@ -1,6 +1,7 @@
 package com.kisanconnect.controller;
 import com.kisanconnect.dto.ProductDto.*;
 import com.kisanconnect.security.JwtUtil;
+import com.kisanconnect.security.InternalApiKeyVerifier;
 import com.kisanconnect.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,6 +29,7 @@ import java.util.UUID;
 public class ProductController {
     private final ProductService service;
     private final JwtUtil jwtUtil;
+    private final InternalApiKeyVerifier internalApiKeyVerifier;
 
     @GetMapping
     @Operation(summary="Search/list products with optional filters (scale, category, keyword)")
@@ -76,7 +78,11 @@ public class ProductController {
 
     @PostMapping("/{id}/stock")
     @Operation(summary="Decrease stock for a product")
-    public ResponseEntity<Void> decreaseStock(@PathVariable UUID id, @RequestParam BigDecimal quantity) {
+    public ResponseEntity<Void> decreaseStock(@PathVariable UUID id, @RequestParam BigDecimal quantity,
+            @RequestHeader(value = "X-Internal-Api-Key", required = false) String internalApiKey) {
+        if (!internalApiKeyVerifier.isValid(internalApiKey)) {
+            throw new org.springframework.security.access.AccessDeniedException("Internal service authentication required");
+        }
         service.decreaseStock(id, quantity);
         return ResponseEntity.ok().build();
     }

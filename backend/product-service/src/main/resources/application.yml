@@ -38,8 +38,11 @@ spring:
         sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG:}
 
 jwt:
-  secret: ${JWT_SECRET:kisanconnect-local-secret-key-change-in-prod-at-least-32-chars}
+  secret: ${JWT_SECRET}
   expiration-ms: 86400000
+
+internal:
+  api-key: ${INTERNAL_API_KEY}
 
 management:
   endpoints:

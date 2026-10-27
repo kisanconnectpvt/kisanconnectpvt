@@ -22,7 +22,7 @@ export const paymentApi = axios.create({ baseURL: PAYMENT_API });
 [userApi, productApi, orderApi, paymentApi].forEach(inst => {
   inst.interceptors.request.use(withAuth);
   inst.interceptors.response.use(r => r, err => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && localStorage.getItem('kc_token')) {
       localStorage.removeItem('kc_token');
       localStorage.removeItem('kc_user');
       window.location.href = '/login';
@@ -61,6 +61,4 @@ export const orderService = {
 export const paymentService = {
   createOrder: (data) => paymentApi.post('/api/v1/payments/orders', data),
   verify:      (data) => paymentApi.post('/api/v1/payments/verify', data),
-  createStripeIntent: (data) => paymentApi.post('/api/v1/payments/stripe/intent', data),
-  verifyStripePayment: (data) => paymentApi.post('/api/v1/payments/stripe/verify', data),
 };
